@@ -12,22 +12,22 @@
 using namespace cv;
 double img[32][32][32] = { {{1}} };
 int st = 0;
-int maxIter=200;//µü´ú´ÎÊı
-double lambda = 1, rou = 1, e = 0.0001,s=0.5;//lambdaÎªÀ­¸ñÀÊÈÕ³Ë×Ó£¬eÎªÑµÁ·¾«¶È£¬sÎª²½³¤
+int maxIter=200;//è¿­ä»£æ¬¡æ•°
+double lambda = 1, rou = 1, e = 0.0001,s=0.5;//lambdaä¸ºæ‹‰æ ¼æœ—æ—¥ä¹˜å­ï¼Œeä¸ºè®­ç»ƒç²¾åº¦ï¼Œsä¸ºæ­¥é•¿
 double Lapla[32][32] = { {0} };
 double xishuMatrix[32][32] = { {0} };
 double g[32][1024];
-double l1tidu[32][32];//Ï¡Êè¾ØÕóµÄl1Ìİ¶È
-double gt[1024][32] = { {0} };//g¡¾¡¿¡¾¡¿¾ØÕóµÄ×ªÖÃ¾ØÕó
+double l1tidu[32][32];//ç¨€ç–çŸ©é˜µçš„l1æ¢¯åº¦
+double gt[1024][32] = { {0} };//gã€ã€‘ã€ã€‘çŸ©é˜µçš„è½¬ç½®çŸ©é˜µ
 double res[1024][32] = { {0} };
-double l1tidu2[32][1024] = { {0} };//Y-YCµÄl1Ìİ¶È,res
-double Regular[32][32] = { {0} };//ÕıÔò»¯ºóµÄÏ¡Êè¾ØÕó
-double XiangSiDuMatrix[32][32];//ÏàËÆ¶È¾ØÕó
+double l1tidu2[32][1024] = { {0} };//Y-YCçš„l1æ¢¯åº¦,res
+double Regular[32][32] = { {0} };//æ­£åˆ™åŒ–åçš„ç¨€ç–çŸ©é˜µ
+double XiangSiDuMatrix[32][32];//ç›¸ä¼¼åº¦çŸ©é˜µ
 double D[32][32] = { {0} };
-double Dminus1[32][32] = { {0} };//¶Ô½Ç¾ØÕóµÄÄæ
-double I[32][32] = { {0} };//N½×µ¥Î»¾ØÕó
+double Dminus1[32][32] = { {0} };//å¯¹è§’çŸ©é˜µçš„é€†
+double I[32][32] = { {0} };//Né˜¶å•ä½çŸ©é˜µ
 
-void ImageExMartrix(String str)//ÏñËØµã´æ¾ØÕóÖĞ
+void ImageExMartrix(String str)//åƒç´ ç‚¹å­˜çŸ©é˜µä¸­
 {
 	Mat src, dst;
 	src = imread(str);
@@ -53,20 +53,18 @@ void ImageExMartrix(String str)//ÏñËØµã´æ¾ØÕóÖĞ
 	{
 		for (int j = 0; j < 32; j++)
 		{
-			img[st][i][j] = dst.at<Vec3b>(i, j)[0];//½«µÚstÕÅÍ¼Æ¬µÄÏñËØÖµ´æµ½¾ØÕóÖĞ
+			img[st][i][j] = dst.at<Vec3b>(i, j)[0];//å°†ç¬¬stå¼ å›¾ç‰‡çš„åƒç´ å€¼å­˜åˆ°çŸ©é˜µä¸­
 		}
 	}
-
-
 }
 
 
-double l1fan(double a[][32])//Çó¾ØÕóµÄl1·¶Êı
+double l1fan(double a[][32])//æ±‚çŸ©é˜µçš„l1èŒƒæ•°
 {
 	double x = 0;
 	int m, n;
-	n = 32;//ÁĞÊı
-	m = sizeof(a) / 32;//ĞĞÊı
+	n = 32;//åˆ—æ•°
+	m = sizeof(a) / 32;//è¡Œæ•°
 	for (int i = 0; i < m; i++)
 	{
 		for (int j = 0; j < n; j++)
@@ -77,7 +75,7 @@ double l1fan(double a[][32])//Çó¾ØÕóµÄl1·¶Êı
 	return x;
 }
 
-void inputFun()//µ¥Î»ÏñËØµãÊı¾İ×ª»¯ÎªĞĞÏòÁ¿£¬²¢ÇÒÒÀ´Î´æÓÚ¾ØÕóÖĞ
+void inputFun()//å•ä½åƒç´ ç‚¹æ•°æ®è½¬åŒ–ä¸ºè¡Œå‘é‡ï¼Œå¹¶ä¸”ä¾æ¬¡å­˜äºçŸ©é˜µä¸­
 {
 	for (int i = 0; i < 32; i++)
 	{
@@ -85,15 +83,13 @@ void inputFun()//µ¥Î»ÏñËØµãÊı¾İ×ª»¯ÎªĞĞÏòÁ¿£¬²¢ÇÒÒÀ´Î´æÓÚ¾ØÕóÖĞ
 		{
 			for (int k = 0; k < 32; k++)
 			{
-				g[i][j * 32 + k] = img[i][j][k];//½«Ã¿Ò»¸öÍ¼Æ¬µÄµÄ¾ØÕó±ä³ÉĞĞÏòÁ¿
+				g[i][j * 32 + k] = img[i][j][k];//å°†æ¯ä¸€ä¸ªå›¾ç‰‡çš„çš„çŸ©é˜µå˜æˆè¡Œå‘é‡
 			}
 		}
 	}
 }
 
-
-
-int sign(double x)//sgnº¯Êı
+int sign(double x)//sgnå‡½æ•°
 {
 	if (x > 0)
 		return 1;
@@ -102,7 +98,7 @@ int sign(double x)//sgnº¯Êı
 	else return 0;
 
 }
-void  FunSign()//Çó¾ØÕól1·¶ÊıµÄ´ÎÌİ¶È
+void  FunSign()//æ±‚çŸ©é˜µl1èŒƒæ•°çš„æ¬¡æ¢¯åº¦
 {
 	for (int i = 0; i < 32; i++)
 	{
@@ -111,11 +107,9 @@ void  FunSign()//Çó¾ØÕól1·¶ÊıµÄ´ÎÌİ¶È
 			l1tidu[i][j] = sign(xishuMatrix[i][j]);
 		}
 	}
-
 }
 
-
-double wuqiongfanshu(double a[][32])//ÇóÎŞÇî·¶Êı
+double wuqiongfanshu(double a[][32])//æ±‚æ— ç©·èŒƒæ•°
 {
 	double max = 0,max1=0;
 	for (int i = 0; i < 1024; i++)
@@ -130,12 +124,10 @@ double wuqiongfanshu(double a[][32])//ÇóÎŞÇî·¶Êı
 			max = max1;
 		}
 	}
-	
-	
 	return max;
 }
 
-double l2fan(double r[][32])//ÊµÖÊÎªl2·¶ÊıÆ½·½
+double l2fan(double r[][32])//å®è´¨ä¸ºl2èŒƒæ•°å¹³æ–¹
 {
 	double l2 = 0;
 	for (int i = 0; i < 1024; i++)
@@ -149,7 +141,7 @@ double l2fan(double r[][32])//ÊµÖÊÎªl2·¶ÊıÆ½·½
 	return l2;
 }
 
-void Lpk()//À­¸ñÀÊÈÕº¯Êı
+void Lpk()//æ‹‰æ ¼æœ—æ—¥å‡½æ•°
 {
 	double Lp = 0;
 	FunSign();
@@ -158,67 +150,66 @@ void Lpk()//À­¸ñÀÊÈÕº¯Êı
 	{
 		for (int j = 0; j < 32; j++)
 		{
-			xishuMatrix[i][j] -= s * l1tidu[i][j];//Ï¡Êè¾ØÕóÌİ¶ÈÏÂ½µ
+			xishuMatrix[i][j] -= s * l1tidu[i][j];//ç¨€ç–çŸ©é˜µæ¢¯åº¦ä¸‹é™
 		}
-	}MutilMatrix(xishuMatrix, gt);//³ÖĞø¸üĞÂ£¨Y-YC£©
+	}MutilMatrix(xishuMatrix, gt);//æŒç»­æ›´æ–°ï¼ˆY-YCï¼‰
 	for (int i = 0; i < 1024; i++)
 	{
 		for (int j = 0; j < 32; j++)
 		{
 			
-			res[i][j] -= s * (  sqrt(l2fan(res))+res[i][j]+l1tidu2[i][j]);//Y-YCÌİ¶ÈÏÂ½µ
+			res[i][j] -= s * (  sqrt(l2fan(res))+res[i][j]+l1tidu2[i][j]);//Y-YCæ¢¯åº¦ä¸‹é™
 		}
 	}
-	double gzhengze;//±äÁ¿´ú±íÕıÔòÏîµÄÌİ¶È
+	double gzhengze;//å˜é‡ä»£è¡¨æ­£åˆ™é¡¹çš„æ¢¯åº¦
 	gzhengze = 2 * sqrt(l2fan(res))*l1fan(res);//
 
-	//Lp = l1fan(xishuMatrix) + lambda * l1fan2(res) + rou * 0.5*l2fan(res) + gzhengze;//´ı¶¨£¬Ğè¼ÓÕıÔòÏîµÄµ¼Êı
-	
+	//Lp = l1fan(xishuMatrix) + lambda * l1fan2(res) + rou * 0.5*l2fan(res) + gzhengze;//å¾…å®šï¼Œéœ€åŠ æ­£åˆ™é¡¹çš„å¯¼æ•°
 }
-void argx()//¶ÔÏ¡Êè¾ØÕó¿ªÊ¼µü´ú,²ÉÓÃÌİ¶ÈÏÂ½µ·¨
+void argx()//å¯¹ç¨€ç–çŸ©é˜µå¼€å§‹è¿­ä»£,é‡‡ç”¨æ¢¯åº¦ä¸‹é™æ³•
 {
 	double L1 = 0,L2 = 0;
-	L2 = l1fan(xishuMatrix) + lambda * l1fan(res) + rou * 0.5*l2fan(res);//Ôö¹ãÀ­¸ñÀÊÈÕ¹«Ê½
+	L2 = l1fan(xishuMatrix) + lambda * l1fan(res) + rou * 0.5*l2fan(res);//å¢å¹¿æ‹‰æ ¼æœ—æ—¥å…¬å¼
 	int cnt = 0;
 	while (abs(L2 - L1) > e&&cnt<200)
 	{
-		FunSign();//Çóº¯Êı´ÎÌİ¶È
+		FunSign();//æ±‚å‡½æ•°æ¬¡æ¢¯åº¦
 		
 		L1 = L2;
 		Lpk();
-		MutilMatrix(xishuMatrix, gt);//¸üĞÂres¾ØÕó
-		L2= l1fan(xishuMatrix) + lambda * l1fan(res) + rou * 0.5*l2fan(res);//Ôö¹ãÀ­¸ñÀÊÈÕ¹«Ê½
+		MutilMatrix(xishuMatrix, gt);//æ›´æ–°resçŸ©é˜µ
+		L2= l1fan(xishuMatrix) + lambda * l1fan(res) + rou * 0.5*l2fan(res);//å¢å¹¿æ‹‰æ ¼æœ—æ—¥å…¬å¼
 		cnt++;
 		diag0();
 	}
 }
-void diag0()//½«Ö÷¶Ô½ÇÏßÔªËØ±äÎª0
+void diag0()//å°†ä¸»å¯¹è§’çº¿å…ƒç´ å˜ä¸º0
 {
 	for (int i = 0; i < 32; i++)
 		xishuMatrix[i][i] = 0;
 }
-void admm()//ÀûÓÃadmmÇó½âÏ¡Êè¾ØÕó
+void admm()//åˆ©ç”¨admmæ±‚è§£ç¨€ç–çŸ©é˜µ
 {
 	//argx();
 	MutilMatrix(xishuMatrix, gt);
 	//wuqiongfanshu(res);
 	double L1 = 0, L2 = 0;
-	L2 = l1fan(xishuMatrix)+lambda*l1fan(res)+rou*0.5*l2fan(res);//Ôö¹ãÀ­¸ñÀÊÈÕ¹«Ê½
+	L2 = l1fan(xishuMatrix)+lambda*l1fan(res)+rou*0.5*l2fan(res);//å¢å¹¿æ‹‰æ ¼æœ—æ—¥å…¬å¼
 
 	while (maxIter--&&(abs(L2-L1)>e))//Lrou1-Lrou2<e
 	{
-		argx();//Ï¡Êè¾ØÕóÔÚÖ´ĞĞ´Ëº¯Êıºó»á¸üĞÂ
-		lambda = lambda + rou * l1fan(res);//¸üĞÂÀ­¸ñÀÊÈÕ³Ë×Ó
+		argx();//ç¨€ç–çŸ©é˜µåœ¨æ‰§è¡Œæ­¤å‡½æ•°åä¼šæ›´æ–°
+		lambda = lambda + rou * l1fan(res);//æ›´æ–°æ‹‰æ ¼æœ—æ—¥ä¹˜å­
 		L1 = L2;
-		MutilMatrix(xishuMatrix, gt);//³ÖĞø¸üĞÂ£¨Y-YC£©
+		MutilMatrix(xishuMatrix, gt);//æŒç»­æ›´æ–°ï¼ˆY-YCï¼‰
 		L2= l1fan(xishuMatrix) + lambda * l1fan(res) + rou * 0.5*l2fan(res);
-		diag0();//Ê¹Cii=0
+		diag0();//ä½¿Cii=0
 	}
 }
 
-void MutilMatrix(double xishuMatrix[][32],double Y[][32])//ÊµÏÖY-YC
+void MutilMatrix(double xishuMatrix[][32],double Y[][32])//å®ç°Y-YC
 {
-	for (int i = 0; i < 1024; i++)//¾ØÕóÏà³Ë
+	for (int i = 0; i < 1024; i++)//çŸ©é˜µç›¸ä¹˜
 	{
 		for (int j = 0; j < 32; j++)
 		{
@@ -236,7 +227,7 @@ void MutilMatrix(double xishuMatrix[][32],double Y[][32])//ÊµÏÖY-YC
 		}
 	}
 }
-void Tzhuan(double a[][1024], double b[][32])//Ê¹µÃ¾ØÕóµÄÁĞÏòÁ¿À´±íÊ¾Í¼Æ¬µÄÊı¾İ
+void Tzhuan(double a[][1024], double b[][32])//ä½¿å¾—çŸ©é˜µçš„åˆ—å‘é‡æ¥è¡¨ç¤ºå›¾ç‰‡çš„æ•°æ®
 {
 	for (int i = 0; i < 32; i++)
 	{
@@ -278,8 +269,8 @@ double l1fan2(double a[][32])
 	}
 	return x;
 }
-//ÒÔÉÏÎªÏ¡Êè¾ØÕó£¨Í¬ÑùÊÇÏµÊı¾ØÕó£©µÄÓÅ»¯µü´ú²¿·Ö
-double WuqiongLie(double a[32])//È¡ÏµÊı¾ØÕóÃ¿Ò»ÁĞÏòÁ¿µÄÎŞÇî·¶Êı
+//ä»¥ä¸Šä¸ºç¨€ç–çŸ©é˜µï¼ˆåŒæ ·æ˜¯ç³»æ•°çŸ©é˜µï¼‰çš„ä¼˜åŒ–è¿­ä»£éƒ¨åˆ†
+double WuqiongLie(double a[32])//å–ç³»æ•°çŸ©é˜µæ¯ä¸€åˆ—å‘é‡çš„æ— ç©·èŒƒæ•°
 {
 	double max = 0;
 	for (int i = 0; i < 32; i++)
@@ -290,7 +281,7 @@ double WuqiongLie(double a[32])//È¡ÏµÊı¾ØÕóÃ¿Ò»ÁĞÏòÁ¿µÄÎŞÇî·¶Êı
 	return max;
 }
 
-void  XishuMatrixRegularzation()//ÏàËÆ¶È¾ØÕóµÄÕıÔò»¯
+void  XishuMatrixRegularzation()//ç›¸ä¼¼åº¦çŸ©é˜µçš„æ­£åˆ™åŒ–
 {
 	double a[32] = { 0 }, b[32] = { 0 }, c[32][32] = { {0} };
 	for (int i = 0; i < 32; i++)
@@ -299,23 +290,20 @@ void  XishuMatrixRegularzation()//ÏàËÆ¶È¾ØÕóµÄÕıÔò»¯
 		{
 			a[j] = xishuMatrix[j][i];
 		}
-		b[i]=WuqiongLie(a);//½«Ã¿Ò»ÁĞµÄÎŞÇî·¶Êı´æ´¢ÓÚbÊı×éÖĞ
+		b[i]=WuqiongLie(a);//å°†æ¯ä¸€åˆ—çš„æ— ç©·èŒƒæ•°å­˜å‚¨äºbæ•°ç»„ä¸­
 
 	}
 	for (int i = 0; i < 32; i++)
 	{
 		for (int j = 0; j < 32; j++)
 		{
-			Regular[i][j] = xishuMatrix[i][j] / b[j];//ÏµÊı¾ØÕóÕıÔò»¯
+			Regular[i][j] = xishuMatrix[i][j] / b[j];//ç³»æ•°çŸ©é˜µæ­£åˆ™åŒ–
 		}
 		
 	}
-
-
-
 }
 
-void like()//¹¹½¨ÏàËÆ¶È¾ØÕó
+void like()//æ„å»ºç›¸ä¼¼åº¦çŸ©é˜µ
 {
 	for (int i = 0; i < 32; i++)
 	{
@@ -324,10 +312,9 @@ void like()//¹¹½¨ÏàËÆ¶È¾ØÕó
 			XiangSiDuMatrix[i][j] = abs(Regular[i][j]) + abs(Regular[j][i]);//W=|C|+|C|t
 		}
 	}
-
 }
 
-void DuiJiao()//Çó¶Ô½Ç¾ØÕó
+void DuiJiao()//æ±‚å¯¹è§’çŸ©é˜µ
 {
 	for (int i = 0; i < 32; i++)
 	{
@@ -339,13 +326,13 @@ void DuiJiao()//Çó¶Ô½Ç¾ØÕó
 	for (int i = 0; i < 32; i++)
 	{
 		Dminus1[i][i] = 1 / D[i][i];
-		I[i][i] = 1;//×÷Îªµ¥Î»¾ØÕó
+		I[i][i] = 1;//ä½œä¸ºå•ä½çŸ©é˜µ
 	}
 }
 
 
 
-void LaplacianMatrix()//Çó½âÕıÔò»¯ºóµÄÀ­ÆÕÀ­Ë¹¾ØÕó
+void LaplacianMatrix()//æ±‚è§£æ­£åˆ™åŒ–åçš„æ‹‰æ™®æ‹‰æ–¯çŸ©é˜µ
 {
 	double M[32][32] = { {0} };
 	for (int i = 0; i < 32; i++)
@@ -362,7 +349,7 @@ void LaplacianMatrix()//Çó½âÕıÔò»¯ºóµÄÀ­ÆÕÀ­Ë¹¾ØÕó
 	{
 		for (int j = 0; j < 32; j++)
 		{
-			Lapla[i][j] = I[i][j] - M[i][j];//À­ÆÕÀ­Ë¹¾ØÕóµÄÕıÔò»¯
+			Lapla[i][j] = I[i][j] - M[i][j];//æ‹‰æ™®æ‹‰æ–¯çŸ©é˜µçš„æ­£åˆ™åŒ–
 		}
 	}
 }
@@ -371,10 +358,8 @@ void LaplacianMatrix()//Çó½âÕıÔò»¯ºóµÄÀ­ÆÕÀ­Ë¹¾ØÕó
 int main()
 {
 	String str;
-	
 	while (st < 32)
 	{
-		
 		str = "C:" + ((char)('0' + st)) ;
 		str += ".jpg";
 		ImageExMartrix(str);
@@ -383,12 +368,8 @@ int main()
 
 	for (int i = 0; i < 32; i++)
 	{
-			xishuMatrix[i][i] =0 ;//³õÊ¼»¯Ï¡ÊèÏµÊı¾ØÕó
-		
+			xishuMatrix[i][i] =0 ;//åˆå§‹åŒ–ç¨€ç–ç³»æ•°çŸ©é˜µ	
 	}
 	inputFun();
 	Tzhuan(g, gt);
-
-
-
 }
